@@ -1,55 +1,112 @@
 package database
 
 import (
-	"database/sql"
-	"fmt"
+	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/afifialaa/blog/models"
+	"github.com/fatih/structs"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"context"
+	"fmt"
+	"log"
 )
 
+var ArticlesCollection *mongo.Collection
+
 func Connect() {
-	fmt.Println("Go MySQL Tutorial")
+	clientOptions := options.Client().ApplyURI(os.Getenv("CLOUD_MONGO"))
 
-	db, err := sql.Open("mysql", "root:admin12345@tcp(127.0.0.1:3306)/events")
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
 
 	if err != nil {
-		fmt.Println("Failed to connect to db")
-		panic(err.Error())
+		log.Fatal(err)
 	}
 
-	defer db.Close()
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Connected to MongoDB!")
+
+	ArticlesCollection = client.Database("blog").Collection("articles")
+
 }
 
-// Create database
-func createDB(db *sql.DB) {
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS events")
+func UpdateArticle(article models.Article) bool {
+	data := structs.Map(article)
+
+	_, err := ArticlesCollection.UpdateOne(context.TODO(), bson.M{"_id": article.ID},
+		bson.D{
+			{"$set", data},
+		},
+	)
+
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+		return false
 	}
-	fmt.Println("Database was created")
-	db.Close()
+
+	return true
 }
 
-func Seed() {
-	fmt.Println("Seeding")
-
-	db, err := sql.Open("mysql", "root:admin12345@tcp(127.0.0.1:3306)/events")
-	createDB(db)
-
+func CreateArticle(article models.Article) bool {
+	_, err := ArticlesCollection.InsertOne(context.TODO(), article)
 	if err != nil {
-		fmt.Println("Failed to connect to db")
-		panic(err.Error())
+		fmt.Println("mongodb error ", err.Error())
+		return false
 	}
 
-	defer db.Close()
+	fmt.Println("Article was created")
+	return true
+}
 
-	_, err = db.Query("INSERT INTO users (email, password) VALUES ( 'afifi@gmail.com', 'afifi123' )")
-	_, err = db.Query("INSERT INTO users (email, password) VALUES ( 'omneya@gmail.com', 'omneya123' )")
-	_, err = db.Query("INSERT INTO users (email, password) VALUES ( 'luka@gmail.com', 'luka123' )")
+func DeleteArticle(id string) bool {
+	fmt.Println(id)
+	idPrimitive, _ := primitive.ObjectIDFromHex(id)
+
+	filter := bson.D{{"_id", idPrimitive}}
+
+	_, err := ArticlesCollection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		fmt.Println("Failed to delete article")
+		return false
+	}
+
+	return true
+}
+
+func FetchArticles(user string) []models.Article {
+	filter := bson.D{{"user", user}}
+	// Finding multiple documents returns a cursor
+	cursor, err := ArticlesCollection.Find(context.TODO(), filter)
 
 	if err != nil {
-		panic(err.Error())
-	} else {
-		fmt.Println("Data inserted into database")
+		fmt.Println(err)
 	}
+
+	var result []models.Article
+
+	// Iterate over the cursor and decode each document
+	for cursor.Next(context.TODO()) {
+		var book models.Article
+
+		err := cursor.Decode(&book)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		result = append(result, book)
+	}
+
+	cursor.Close(context.TODO())
+	return result
 }

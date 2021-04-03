@@ -1,0 +1,4 @@
+*.sum
+config
+*/config.go
+*.sh
