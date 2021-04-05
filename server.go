@@ -22,7 +22,12 @@ func main() {
 	r.HandleFunc("/blog", handlers.FetchArticles).Methods("GET")
 	r.HandleFunc("/blog", handlers.CreateArticle).Methods("POST")
 	r.HandleFunc("/blog", handlers.DeleteArticle).Methods("DELETE")
-	r.HandleFunc("/blog", handlers.UpdateBlog).Methods("PUT")
+	r.HandleFunc("/blog", handlers.UpdateArticle).Methods("PUT")
+
+	r.HandleFunc("/comment", handlers.FetchComments).Methods("GET")
+	r.HandleFunc("/comment", handlers.PostComment).Methods("POST")
+	r.HandleFunc("/comment", handlers.DeleteComment).Methods("DELETE")
+	r.HandleFunc("/comment", handlers.UpdateComment).Methods("PUT")
 
 	// Listen and serve
 	fmt.Println("server is running")
