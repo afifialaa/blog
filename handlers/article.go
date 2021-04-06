@@ -23,6 +23,7 @@ func CreateArticle(w http.ResponseWriter, r *http.Request) {
 
 	var result bool = models.CreateArticle(article)
 	if result == true {
+		models.PostArticleES(article)
 		res := map[string]string{"msg": "Article was created"}
 		json.NewEncoder(w).Encode(res)
 		return

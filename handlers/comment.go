@@ -26,6 +26,7 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 
 	var result bool = models.CreateComment(comment)
 	if result == true {
+		models.PostCommentES(comment)
 		res := map[string]string{"msg": "Comment was created"}
 		json.NewEncoder(w).Encode(res)
 		return

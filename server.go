@@ -7,9 +7,12 @@ import (
 	"github.com/afifialaa/blog/config"
 	"github.com/afifialaa/blog/database"
 	"github.com/afifialaa/blog/handlers"
+	"github.com/elastic/go-elasticsearch"
 	gorillaHandler "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
+
+var ES *elasticsearch.Client
 
 func main() {
 	// Set environment variables

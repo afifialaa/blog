@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/afifialaa/blog/database"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -19,6 +21,36 @@ type Comment struct {
 	Article_ID primitive.ObjectID `bson:"article_id" json:"article_id,omitempty"`
 }
 
+func PostCommentES(comment Comment) {
+
+	ES := database.GetESClient()
+
+	// Build the request body.
+	var b strings.Builder
+	b.WriteString(`{"user" : "`)
+	b.WriteString(comment.User)
+	b.WriteString(`", "body": "`)
+	b.WriteString(comment.Body)
+	b.WriteString(`", "article_id": "`)
+	b.WriteString(comment.Article_ID.Hex())
+	b.WriteString(`"}`)
+
+	// Set up the request object.
+	req := esapi.IndexRequest{
+		Index:      "article",
+		DocumentID: comment.ID.Hex(),
+		Body:       strings.NewReader(b.String()),
+		Refresh:    "true",
+	}
+
+	// Perform the request with the client.
+	res, err := req.Do(context.Background(), ES)
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
+	defer res.Body.Close()
+}
+
 func CreateComment(comment Comment) bool {
 	_, err := database.CommentsCollection.InsertOne(context.TODO(), comment)
 	if err != nil {
@@ -26,7 +58,6 @@ func CreateComment(comment Comment) bool {
 		return false
 	}
 
-	fmt.Println("Comment was posted")
 	return true
 }
 

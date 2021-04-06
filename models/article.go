@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/afifialaa/blog/database"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/fatih/structs"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/mgo.v2/bson"
@@ -16,6 +18,36 @@ type Article struct {
 	User    string             `bson:"user" json:"user"`
 	Title   string             `bson:"title" json:"title"`
 	Content string             `bson:"content" json:"content"`
+}
+
+func PostArticleES(article Article) {
+
+	ES := database.GetESClient()
+
+	// Build the request body.
+	var b strings.Builder
+	b.WriteString(`{"title" : "`)
+	b.WriteString(article.Title)
+	b.WriteString(`", "content": "`)
+	b.WriteString(article.Content)
+	b.WriteString(`", "user": "`)
+	b.WriteString(article.User)
+	b.WriteString(`"}`)
+
+	// Set up the request object.
+	req := esapi.IndexRequest{
+		Index:      "article",
+		DocumentID: article.ID.Hex(),
+		Body:       strings.NewReader(b.String()),
+		Refresh:    "true",
+	}
+
+	// Perform the request with the client.
+	res, err := req.Do(context.Background(), ES)
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
+	defer res.Body.Close()
 }
 
 func UpdateArticle(article Article) bool {
