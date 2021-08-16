@@ -15,6 +15,26 @@ cd blog
 ```bash
 go get
 ```
+
+### Add config functions
+```go
+func SetEnv() {
+	fmt.Println("Setting env")
+	os.Setenv("CLOUD_MONGO", "<YOUR_CONNECTION_STRING>")
+	os.Setenv("PORT", "8000")
+}
+
+func InitApp() {
+	fmt.Println("Initializing app")
+	ES, err := elasticsearch.NewDefaultClient()
+	if err != nil {
+		panic("Client failed")
+	}
+	fmt.Println(ES.Ping())
+}
+```
+
+
 Server will be running on port 8000
 
 ## Articles Routes
