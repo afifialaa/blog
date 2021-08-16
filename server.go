@@ -22,11 +22,16 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", handlers.HomeHandler).Methods("GET")
+
+    // Blog routes
 	r.HandleFunc("/blog", handlers.FetchArticles).Methods("GET")
 	r.HandleFunc("/blog", handlers.CreateArticle).Methods("POST")
 	r.HandleFunc("/blog", handlers.DeleteArticle).Methods("DELETE")
 	r.HandleFunc("/blog", handlers.UpdateArticle).Methods("PUT")
 
+	r.HandleFunc("/search", handlers.Search).Methods("GET")
+
+    // Comment routes
 	r.HandleFunc("/comment", handlers.FetchComments).Methods("GET")
 	r.HandleFunc("/comment", handlers.PostComment).Methods("POST")
 	r.HandleFunc("/comment", handlers.DeleteComment).Methods("DELETE")

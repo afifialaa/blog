@@ -5,9 +5,21 @@ import (
 	"net/http"
 
 	"github.com/afifialaa/blog/models"
+	"github.com/afifialaa/blog/config"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+func Search(w http.ResponseWriter, r *http.Request){
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "*")
+
+    word := r.FormValue("word")
+    result := config.SearchArticlesES(word)
+    json.NewEncoder(w).Encode(result)
+    return
+}
+
+// Creates a new article
 func CreateArticle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "*")
@@ -34,7 +46,7 @@ func CreateArticle(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-//
+// Fetches all article of a user
 func FetchArticles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "*")
@@ -46,6 +58,7 @@ func FetchArticles(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Delete an article
 func DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "*")
@@ -65,6 +78,7 @@ func DeleteArticle(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Update an article
 func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "*")
