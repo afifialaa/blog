@@ -1,5 +1,4 @@
 *.sum
-config
-*/config.go
+conf.go
 *.sh
 .vscode
